@@ -186,8 +186,8 @@ const buildSimulationResult = (
       const monthsRemaining = monthsToDeadline(goal.deadline) ?? 12
       const gap = Math.max(0, target - current)
       const monthlyContribution =
-        typeof goal === 'object' && goal !== null && 'monthly_contribution' in goal
-          ? (goal as GoalModel & { monthly_contribution?: number }).monthly_contribution
+        typeof goal.monthly_contribution === 'number' && !Number.isNaN(goal.monthly_contribution)
+          ? goal.monthly_contribution
           : undefined
       const derivedContribution =
         monthlyContribution && monthlyContribution > 0
