@@ -185,7 +185,10 @@ const buildSimulationResult = (
       const current = Number(goal.current_amount) || 0
       const monthsRemaining = monthsToDeadline(goal.deadline) ?? 12
       const gap = Math.max(0, target - current)
-      const monthlyContribution = (goal as Record<string, unknown>).monthly_contribution as number | undefined
+      const monthlyContribution =
+        typeof goal === 'object' && goal !== null && 'monthly_contribution' in goal
+          ? (goal as GoalModel & { monthly_contribution?: number }).monthly_contribution
+          : undefined
       const derivedContribution =
         monthlyContribution && monthlyContribution > 0
           ? monthlyContribution
