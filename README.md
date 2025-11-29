@@ -279,6 +279,27 @@ npm run build
 npm start
 ```
 
+
+### Demo data pack (Supabase)
+
+Need a believable account to demo dashboards, reports, nudges, and chat memory? Run the seeding script:
+
+1. Install backend deps (`pip install -r backend/requirements.txt`) and ensure `backend/.env` has a working `DATABASE_URL`.
+2. From the `backend/` folder run:
+   ```bash
+   poetry run python scripts/seed_sample_user.py \
+     --user-id 52253808-d4e7-4903-b245-0e5500cf11fb \
+     --email gautamgupta.1008@gmail.com \
+     --full-name "Mohan Kumar"
+   ```
+   Use `--skip-purge` if you do **not** want the script to wipe this user's previous rows first.
+3. Sign in with that Supabase user to explore the populated dashboards.
+
+The seed touches every table the UI cares about: income sources, 3 clients, 11 transactions (mix of past/future, GST, transfers), 3 invoices, GST/tax/bookkeeping tasks, the ₹6L runway goal plus two others, 6 months of pulse history, quarterly tax records, WhatsApp nudges, chat snippets, and agent memories so the assistant/RAG stay contextual.
+
+Prefer running everything directly inside Supabase? Upload/execute `backend/scripts/seed_sample_user.sql` in the Supabase SQL editor—it contains the same dataset and wipes/recreates just the specified user's rows in one transaction.
+
+
 ## 📦 Deployment
 
 ### Frontend (Vercel)
@@ -323,3 +344,4 @@ For issues and questions:
 ---
 
 **Built with ❤️ for the Indian freelance community**
+

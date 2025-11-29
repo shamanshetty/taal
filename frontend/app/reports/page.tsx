@@ -24,12 +24,12 @@ import {
   BarChart,
   CartesianGrid,
   Legend,
+  Line,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
-  LineChart,
-  Line,
 } from 'recharts'
 import { formatCurrency } from '@/lib/utils'
 import { useUserStore } from '@/store/useUserStore'
@@ -345,15 +345,6 @@ export default function ReportsPage() {
   const transactions = useUserStore((state) => state.transactions)
 
   const monthlyRecords = useMemo(() => buildMonthlyRecords(transactions), [transactions])
-  const categoryRecords = useMemo(() => buildCategoryRecords(transactions), [transactions])
-  const scenarioCards = useMemo(
-    () => buildScenarioInsights(monthlyRecords, categoryRecords),
-    [monthlyRecords, categoryRecords]
-  )
-  const incomeQuality = useMemo(() => buildIncomeQualitySummary(transactions), [transactions])
-  const receivableAging = useMemo(() => buildReceivableAging(transactions), [transactions])
-  const cashCycleMetrics = useMemo(() => buildCashCycleMetrics(transactions), [transactions])
-
   const filteredMonths = useMemo(() => {
     if (!search.trim()) {
       return monthlyRecords
@@ -361,6 +352,38 @@ export default function ReportsPage() {
     const query = search.trim().toLowerCase()
     return monthlyRecords.filter((record) => record.month.toLowerCase().includes(query))
   }, [monthlyRecords, search])
+
+  const filteredTransactions = useMemo(() => {
+    if (!search.trim()) {
+      return transactions
+    }
+    if (!filteredMonths.length) {
+      return []
+    }
+    const allowedMonths = new Set(filteredMonths.map((record) => record.month.toLowerCase()))
+    return transactions.filter((tx) => {
+      const label = getMonthLabel(getMonthKey(tx.date)).toLowerCase()
+      return allowedMonths.has(label)
+    })
+  }, [transactions, filteredMonths, search])
+
+  const categoryRecords = useMemo(() => buildCategoryRecords(filteredTransactions), [filteredTransactions])
+  const scenarioCards = useMemo(
+    () => buildScenarioInsights(filteredMonths, categoryRecords),
+    [filteredMonths, categoryRecords]
+  )
+  const incomeQuality = useMemo(() => buildIncomeQualitySummary(filteredTransactions), [filteredTransactions])
+  const incomeQualityRingStyle = useMemo(() => {
+    if (incomeQuality.recurringShare === null || incomeQuality.oneOffShare === null) {
+      return null
+    }
+    const recurring = incomeQuality.recurringShare
+    return {
+      background: `conic-gradient(#16A34A 0% ${recurring}%, #FACC15 ${recurring}% 100%)`,
+    }
+  }, [incomeQuality])
+  const receivableAging = useMemo(() => buildReceivableAging(filteredTransactions), [filteredTransactions])
+  const cashCycleMetrics = useMemo(() => buildCashCycleMetrics(filteredTransactions), [filteredTransactions])
 
   const totals = useMemo(() => {
     const income = filteredMonths.reduce((sum, record) => sum + record.income, 0)
@@ -469,6 +492,7 @@ export default function ReportsPage() {
     }
     return 'Add both income and expenses so we can recommend an automatic savings sweep.'
   })()
+  const hasIncomeQualityChart = Boolean(incomeQualityRingStyle)
   const recurringShareLabel = incomeQuality.recurringShare !== null ? `${incomeQuality.recurringShare}%` : PLACEHOLDER
   const oneOffShareLabel = incomeQuality.oneOffShare !== null ? `${incomeQuality.oneOffShare}%` : PLACEHOLDER
   const topClientShareLabel = incomeQuality.topClientShare !== null ? `${incomeQuality.topClientShare}%` : PLACEHOLDER
@@ -742,6 +766,21 @@ export default function ReportsPage() {
               </div>
               <PieChart className="w-4 h-4 text-theme-green" />
             </div>
+            {hasIncomeQualityChart ? (
+              <div className="flex items-center justify-center py-4">
+                <div className="relative h-40 w-40">
+                  <div className="absolute inset-0 rounded-full shadow-inner" style={incomeQualityRingStyle ?? undefined} />
+                  <div className="absolute inset-5 rounded-full bg-background/90 flex flex-col items-center justify-center text-center">
+                    <span className="text-xs text-muted-foreground">Recurring</span>
+                    <span className="text-xl font-semibold">{recurringShareLabel}</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="rounded-2xl border border-dashed border-white/10 bg-background/40 p-4 text-sm text-muted-foreground">
+                Add recurring tags or mark retainers to visualise the mix.
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div className="rounded-2xl border border-white/10 bg-background/40 p-4">
                 <p className="text-muted-foreground">Recurring</p>

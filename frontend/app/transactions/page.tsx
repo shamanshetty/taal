@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   TrendingUp,
@@ -238,7 +239,8 @@ const getCleanupEntry = (transaction: DisplayTransaction) => {
 }
 
 export default function TransactionsPage() {
-  const [searchTerm, setSearchTerm] = useState('')
+  const searchParams = useSearchParams()
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('search') ?? '')
   const [filterCategory, setFilterCategory] = useState('all')
   const [selectedRange, setSelectedRange] = useState<RangeFilter>('This Month')
   const [viewMode, setViewMode] = useState<ViewMode>('list')
@@ -256,6 +258,11 @@ export default function TransactionsPage() {
   const user = useUserStore((state) => state.user)
   const storeTransactions = useUserStore((state) => state.transactions)
   const setTransactions = useUserStore((state) => state.setTransactions)
+
+  useEffect(() => {
+    const nextSearch = searchParams.get('search') ?? ''
+    setSearchTerm((prev) => (prev === nextSearch ? prev : nextSearch))
+  }, [searchParams])
 
   const resetTransactionComposer = () => {
     setTransactionComposer(createTransactionComposerState())

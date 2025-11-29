@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search, Bell, User, Settings, LogOut } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -28,6 +28,16 @@ export function Header() {
     router.replace('/login')
   }
 
+  const handleGlobalSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const trimmed = searchQuery.trim()
+    if (!trimmed) {
+      return
+    }
+    const targetUrl = `/transactions?search=${encodeURIComponent(trimmed)}`
+    router.push(targetUrl)
+  }
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/10 glass backdrop-blur-xl">
       <div className="flex items-center justify-between h-16 px-4 md:px-6 lg:px-8 lg:ml-[280px]">
@@ -45,23 +55,29 @@ export function Header() {
         <div className="hidden lg:block" />
 
         {/* Search Bar */}
-        <div className="hidden md:flex flex-1 max-w-md mx-4">
+        <form className="hidden md:flex flex-1 max-w-md mx-4" onSubmit={handleGlobalSearch}>
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
-              type="text"
+              type="search"
               placeholder="Search transactions, goals, insights..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-background/50 border border-white/10 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-theme-green/50 transition-all"
             />
           </div>
-        </div>
+        </form>
 
         {/* Right Section: Notifications & Profile */}
         <div className="flex items-center gap-3">
           {/* Search Icon (Mobile) */}
-          <button className="md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors">
+          <button
+            className="md:hidden p-2 rounded-lg hover:bg-white/5 transition-colors"
+            onClick={() => {
+              if (!searchQuery.trim()) return
+              router.push(`/transactions?search=${encodeURIComponent(searchQuery.trim())}`)
+            }}
+          >
             <Search className="w-5 h-5 text-muted-foreground" />
           </button>
 

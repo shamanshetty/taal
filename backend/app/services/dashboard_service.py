@@ -14,6 +14,13 @@ MAX_EVENTS = 6
 UPCOMING_WINDOW_DAYS = 14
 
 
+def _event_type_from_transaction(txn_type: str) -> str:
+    """
+    Dashboard UI expects 'inflow'/'outflow'/'task'. Map DB transaction types accordingly.
+    """
+    return "inflow" if txn_type == "income" else "outflow"
+
+
 def _format_due_status(due_date: date | None, today: date) -> str:
     if due_date is None:
         return "No due date"
@@ -140,7 +147,7 @@ def _build_upcoming_events(
                 "date": _date_to_iso(txn.scheduled_for),
                 "amount": float(txn.amount),
                 "currency": txn.currency,
-                "type": "income" if txn.type == "income" else "outflow",
+                "type": _event_type_from_transaction(txn.type or ""),
                 "source": "transaction",
             }
         )
