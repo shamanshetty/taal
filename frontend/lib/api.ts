@@ -10,18 +10,13 @@ import type {
   UpcomingEventItem,
 } from '@/types'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.trim()
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.trim() || 'http://localhost:8000'
 
 type RequestOptions = {
   signal?: AbortSignal
 }
 
-const ensureApiBaseUrl = (): string => {
-  if (!API_BASE_URL) {
-    throw new Error('NEXT_PUBLIC_API_URL is not configured')
-  }
-  return API_BASE_URL
-}
+const ensureApiBaseUrl = (): string => API_BASE_URL
 
 const handleResponse = async (response: Response) => {
   if (response.ok) {
@@ -235,6 +230,23 @@ export async function deleteGoal(goalId: string): Promise<void> {
     method: 'DELETE',
   })
 
+  await handleResponse(response)
+}
+
+export interface SyncUserProfilePayload {
+  id: string
+  email: string
+  full_name?: string
+}
+
+export async function syncUserProfile(payload: SyncUserProfilePayload): Promise<void> {
+  const baseUrl = ensureApiBaseUrl()
+  const url = new URL('/api/users/sync', baseUrl)
+  const response = await fetch(url.toString(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
   await handleResponse(response)
 }
 

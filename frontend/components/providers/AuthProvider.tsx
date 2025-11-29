@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { mapSupabaseUser } from '@/lib/user'
 import { useUserStore } from '@/store/useUserStore'
+import { useEnsureUserProfile } from '@/hooks/useEnsureUserProfile'
 
 const publicRoutes = ['/', '/login']
 
@@ -14,6 +15,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setUser = useUserStore((state) => state.setUser)
   const user = useUserStore((state) => state.user)
   const [initializing, setInitializing] = useState(true)
+  useEnsureUserProfile()
 
   useEffect(() => {
     let isMounted = true

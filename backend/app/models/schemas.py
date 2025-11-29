@@ -1,6 +1,8 @@
 from datetime import date, datetime
 from typing import List, Literal, Optional
 
+from uuid import UUID
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 # User Schemas
@@ -17,6 +19,12 @@ class UserResponse(UserBase):
     id: str
     created_at: datetime
     updated_at: datetime
+
+
+class UserSyncRequest(BaseModel):
+    id: UUID
+    email: EmailStr
+    full_name: Optional[str] = None
 
 # Transaction Schemas
 class TransactionBase(BaseModel):

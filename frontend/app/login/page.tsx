@@ -44,11 +44,13 @@ export default function LoginPage() {
         }
 
         if (data.user) {
-          setUser(mapSupabaseUser(data.user))
+          const mappedUser = mapSupabaseUser(data.user)
+          setUser(mappedUser)
         } else {
           const { data: userResponse } = await supabase.auth.getUser()
           if (userResponse.user) {
-            setUser(mapSupabaseUser(userResponse.user))
+            const mappedUser = mapSupabaseUser(userResponse.user)
+            setUser(mappedUser)
           }
         }
 
@@ -77,7 +79,14 @@ export default function LoginPage() {
         }
 
         if (data.user) {
-          setUser(mapSupabaseUser(data.user))
+          const mappedUser = mapSupabaseUser(data.user)
+          setUser(mappedUser)
+        } else {
+          const { data: userResponse } = await supabase.auth.getUser()
+          if (userResponse.user) {
+            const mappedUser = mapSupabaseUser(userResponse.user)
+            setUser(mappedUser)
+          }
         }
 
         router.replace('/dashboard')
