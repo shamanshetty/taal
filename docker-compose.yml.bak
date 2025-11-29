@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: taalai-postgres
+    environment:
+      POSTGRES_USER: taalai
+      POSTGRES_PASSWORD: taalai_password_change_in_production
+      POSTGRES_DB: taalai
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./shared/supabase-schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - taalai-network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: taalai-backend
+    environment:
+      DATABASE_URL: postgresql://taalai:taalai_password_change_in_production@postgres:5432/taalai
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-this}
+      ALLOWED_ORIGINS: http://localhost:3000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app
+    networks:
+      - taalai-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: taalai-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - taalai-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+
+networks:
+  taalai-network:
+    driver: bridge
